@@ -45,5 +45,3 @@
 (defn get-workfree-days-in-month [month]
   (into [] (sort (into #{} (concat (get-weekends-in-month month)
                                    (get-holidays-in-month month))))))
-
-(get-workfree-days-in-month (t/date-time 2015 12))
