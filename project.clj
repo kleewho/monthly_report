@@ -7,5 +7,7 @@
                  [clj-http "2.0.0"]
                  [cheshire "5.5.0"]
                  [clj-time "0.9.0"]
+                 [environ "1.0.1"]
                  [org.clojure/data.json "0.2.6"]
-                 [com.infolace/excel-templates "0.3.1"]])
+                 [com.infolace/excel-templates "0.3.1"]]
+  :plugins [[lein-environ "1.0.1"]])
