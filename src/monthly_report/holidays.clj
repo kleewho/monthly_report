@@ -43,5 +43,5 @@
        (filter pr/weekend?)))
 
 (defn get-workfree-days-in-month [month]
-  (into [] (sort (into #{} (concat (get-weekends-in-month month)
+  (into #{} (sort (into #{} (concat (get-weekends-in-month month)
                                    (get-holidays-in-month month))))))
