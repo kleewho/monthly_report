@@ -22,7 +22,8 @@
 (defn to-work-type [tasks]
   (fn [day]
     (conj (first (filter #(t/within? (:interval %) day) tasks))
-          [:type :work])))
+          [:type :work]
+          [:date day])))
 
 (map #(or ((to-work-free-type work-free-days) %)
           ((to-work-type tasks) %))
