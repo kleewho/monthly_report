@@ -18,7 +18,8 @@
         end (f/unparse jira-date-formatter (t/plus month (t/months 1)))]
     {:jql (str "project = TGD"
                " AND status was Resolved by " user " after " start
-               " OR status was \"In progress\" by " user " after " start)
+               " OR (status was \"In progress\" by " user " after " start
+               " AND status was \"In progress\" by " user " before " end ")")
      :fields [:id :key :summary]
      :expand [:changelog :transitions]
      }))
@@ -65,7 +66,7 @@
           end (find-task-end transitions)]
       {:key (:key task)
        :summary (get-in task [:fields :summary])
-       :interval (t/interval start (or end last-day-of-the-month))})))
+       :interval (t/interval start (or end (t/plus last-day-of-the-month (t/hours 23))))})))
 
 (defn get-tasks-in-month [month user]
   (let [result (client/post
