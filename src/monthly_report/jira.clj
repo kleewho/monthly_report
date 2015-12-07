@@ -16,9 +16,9 @@
 (defn- tasks-body [month user]
   (let [start (f/unparse jira-date-formatter month)
         end (f/unparse jira-date-formatter (t/plus month (t/months 1)))]
-    {:jql (str "assignee=" user
-               " AND resolved >= " start
-               " AND resolved <= " end)
+    {:jql (str "project = TGD"
+               " AND status was Resolved by " user " after " start
+               " OR status was \"In progress\" by " user " after " start)
      :fields [:id :key :summary]
      :expand [:changelog :transitions]
      }))
@@ -56,7 +56,7 @@
 
 (defn- find-task-end [transitions]
   (:end (or (first (filter #(= (:new-state %) "Done") transitions))
-            (first (filter #(= (:new-state %) "Canceled")) transitions))))
+            (first (filter #(= (:new-state %) "Canceled") transitions)))))
 
 (defn- to-groomed-task [last-day-of-the-month]
   (fn [task]
@@ -77,3 +77,21 @@
                  :insecure? true})
         raw-tasks (get-in result [:body :issues])]
     (map (to-groomed-task (t/last-day-of-the-month month)) raw-tasks)))
+
+;; (get-tasks-in-month (t/date-time 2015 11) "jgruszka") ;
+;; (defn test [month user]
+;;   (client/post
+;;    (jira-query jira-api)
+;;    {:headers {:authorization (str "Basic " (env :jira-token))}
+;;     :form-params (tasks-body month user)
+;;     :content-type :json
+;;     :as :json
+;;     :insecure? true}))
+
+;; (def trans  (let [month (t/date-time 2015 11)]
+;;               (get-task-transitions (first (get-in (test month "jgruszka") [:body :issues])))))
+
+;; (find-task-end trans)
+
+;; (first (filter #(= (:new-state %) "Done") trans))
+;; (first (filter #(= (:new-state %) "Canceled") trans))
