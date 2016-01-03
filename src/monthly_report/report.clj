@@ -1,5 +1,6 @@
 (ns monthly-report.report
   (:require [clj-time.core :as t]
+            [clj-time.format :as f]
             [dk.ative.docjure.spreadsheet :as xl]
             [monthly-report.date-utils :as du]))
 
@@ -19,17 +20,18 @@
         (xl/set-cell! (sheet-cell sheet (+ row 1) col) 3)
         (xl/set-cell! (sheet-cell sheet (+ row 2) col) 1))))
 
+(def english-formatter (f/formatter "MMMM yyyy"))
+
 ; Load a template spreadsheet from a resource, fill it with data and save it
-(defn save-to-excel [month monthly-tasks file-name]
+(defn save-to-excel [month monthly-tasks file-name name date title]
   (let [wb (xl/load-workbook-from-resource "WebDev_Monthly_template.xls")
         sheet (xl/select-sheet "TIME REPORT" wb)
-
         tasks-by-type (group-by :type monthly-tasks)
         ;non-work-days (:non-work tasks-by-type)
         work-days (:work tasks-by-type)
         work-days-by-task-indexed (map vector (range) (group-by :key work-days))]
     (do
-
+      (xl/set-cell! (sheet-cell sheet 0 1) (str name "\n" (f/unparse english-formatter date) "\n" title))
       ; creating the header
       (doseq [[idx value] (map vector (range) (prepare-header month))]
                         (xl/set-cell! (sheet-cell sheet (first header-beginning) (+ (second header-beginning) idx)) value))
