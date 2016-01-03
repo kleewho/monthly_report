@@ -9,6 +9,14 @@
                  [clj-time "0.11.0"]
                  [environ "1.0.1"]
                  [org.clojure/data.json "0.2.6"]
-                 [dk.ative/docjure "1.9.0"]]
+                 [dk.ative/docjure "1.9.0"]
+                 [compojure "1.4.0"]
+                 [ring/ring-defaults "0.1.5"]]
+                 ;; [org.clojure/tools.cli "0.3.3"]]
   :plugins [[lein-environ "1.0.1"]
-            [lein-gorilla "0.3.5"]])
+            [lein-gorilla "0.3.5"]
+            [lein-ring "0.9.7"]
+            ]
+  :ring {:handler monthly-report.main/app
+         :init monthly-report.main/init
+         :start true})
