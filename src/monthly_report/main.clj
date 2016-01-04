@@ -1,4 +1,5 @@
 (ns monthly-report.main
+  (:use ring.util.io)
   (:require [monthly-report.jira :as jira]
             [monthly-report.holidays :as holidays]
             [clj-time.core :as t]
@@ -33,14 +34,21 @@
                                 ((to-work-type tasks) %))
                            (du/generate-days-in-month month))
         file-name (str report-name "_" (t/year month) "_" (t/month month) "_" (:jira-user user) ".xls")]
-    (report/save-to-excel month monthly-tasks file-name (:name user) month (:title user) work-free-days)))
+    (report/create-report month monthly-tasks file-name (:name user) month (:title user) work-free-days)))
 (map #(or ((to-work-free-type (holidays/get-workfree-days-in-month (t/date-time 2015 12))) %)
           nil)
      (du/generate-days-in-month (t/date-time 2015 12)))
 
+(defn return-report [user year month]
+  (let [wb (generate-report user year month)]
+
+    {:headers {"Content-Type" "application/msword"}
+     :body (piped-input-stream (report/write-report wb))}))
+
+
 (defroutes app-routes
-  (GET "/report/:user/:year/:month" [user year month]
-    (generate-report user (Integer/parseInt year) (Integer/parseInt month)))
+  (GET "/report/:year/:month/:user.xls" [year month user]
+    (return-report user (Integer/parseInt year) (Integer/parseInt month)))
   (route/not-found "Not Found"))
 
 (defn init [])
