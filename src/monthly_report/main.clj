@@ -25,10 +25,8 @@
           [:type :work]
           [:date day])))
 
-(defn generate-report [user year month]
-  (let [user (get-in env [:users (keyword user)])
-        month (t/date-time year month)
-        tasks (jira/get-tasks-in-month month (:jira-user user))
+(defn generate-report [user month]
+  (let [tasks (jira/get-tasks-in-month month (:jira-user user))
         work-free-days (holidays/get-workfree-days-in-month month)
         monthly-tasks (map #(or ((to-work-free-type work-free-days) %)
                                 ((to-work-type tasks) %))
@@ -39,15 +37,25 @@
           nil)
      (du/generate-days-in-month (t/date-time 2015 12)))
 
-(defn return-report [user year month]
-  (let [wb (generate-report user year month)]
+(def date-to-filename-formatter (f/formatter "MMM_YYYY"))
 
-    {:headers {"Content-Type" "application/msword"}
+(defn filename [username month]
+  (let [usernameUnderscored (clojure.string/replace username " " "_")
+        filename (list "WebDev_Monthly" usernameUnderscored (f/unparse date-to-filename-formatter month))]
+    (clojure.string/join "_" filename)))
+
+(defn return-report [user year month]
+  (let [user (get-in env [:users (keyword user)])
+        month (t/date-time year month)
+        wb (generate-report user month)]
+
+    {:headers {"Content-Type" "application/vnd.ms-excel"
+               "Content-Disposition" (str "inline; filename=\"" (filename (:name user) month) ".xls\"")}
      :body (piped-input-stream (report/write-report wb))}))
 
 
 (defroutes app-routes
-  (GET "/report/:year/:month/:user.xls" [year month user]
+  (GET "/report/:year/:month/:user" [year month user]
     (return-report user (Integer/parseInt year) (Integer/parseInt month)))
   (route/not-found "Not Found"))
 
